@@ -127,6 +127,8 @@ async def dem(msg: types.Message):
                 txt = file.read().split(",")
             generator = mc.PhraseGenerator(samples=txt)
             message = generator.generate_phrase()
+            if len(message) < 4:
+                raise Exception
             r = bot.pics[random.randint(0,len(bot.pics))-1]
             photo_editor.add_text(message,r,bot.chat_paste_path)
             col = int(r[0]) + 1
