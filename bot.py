@@ -7,6 +7,7 @@ import mc
 import random
 import photo_editor
 import openai
+import openai.error
 import tokens
 import asyncio
 
@@ -177,9 +178,15 @@ async def echo_message(msg: types.Message):
                 chat_gpt.timer = asyncio.create_task(timer_callback(300,msg))
                 await bot.bot.send_message(msg.chat.id, chat_response)
 
+            except (openai.error.APIConnectionError,openai.error.APIError):
+                await bot.bot.send_message(msg.chat.id,'Ошибка доступа к сервисам OpenAI, повторите запрос или попробуйте позже')
+            except openai.error.AuthenticationError:
+                await bot.bot.send_message(msg.chat.id,'Проблемы с токеном, попробуйте еще раз, если ничего не изменится замените токен ChatGPT')
+            except (openai.error.RateLimitError, openai.error.InvalidRequestError):
+                await bot.bot.send_message(msg.chat.id,'Лимит токенов достигнут, оптимизируйте свои запросы. Перезапустите ChatGPT')
             except Exception as e:
                 print(e)
-                await bot.bot.send_message(msg.chat.id,'Ошибка, перезапустите ChatGPT')
+                await bot.bot.send_message(msg.chat.id,'Неизвестная ошибка. Перезапустите ChatGPT')
         else:
             bot.checkchatpath(msg.chat.id)
             bot.checkpics()
