@@ -1,8 +1,4 @@
-from aiogram import Bot, types
-from aiogram.dispatcher import Dispatcher
-from aiogram.utils import executor
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
-import os
+
 import mc
 import random
 import photo_editor
@@ -13,44 +9,9 @@ import asyncio
 
 '''bot settings'''
 
-storage = MemoryStorage()
 
-class TGBot:
-    def __init__(self):
-        self.token = tokens.bot_token
-        self.bot = Bot(token=self.token)
-        self.dp = Dispatcher(self.bot, storage=storage)
-        self.allowid = tokens.allowidlist
-        self.path_to_txt = 'Dialogs/'
-        self.main_path = os.getcwd()
-        self.chat_path = ''
-        self.chat_paste_path = ''
-        self.pics = ''
-        self.stickers_path = ''
-        self.chance = 50
-    def checkpics(self):
-        self.pics = os.listdir(path=self.chat_paste_path)
-    def checkchatpath(self,id):
-        if not os.path.exists(self.path_to_txt + str(id) + '/' + str(id) + '.txt'):
-            os.mkdir(self.path_to_txt + str(id) + '/')
-            f = open(self.path_to_txt + str(id) + '/' + str(id) + '.txt', 'w', encoding='utf8')
-            f.write('')
-            f.close()
-            self.chat_path = self.path_to_txt + str(id) + '/' + str(id) + '.txt'
-        else:
-            self.chat_path = self.path_to_txt + str(id) + '/' + str(id) + '.txt'
-        if not os.path.exists(self.path_to_txt + str(id) + '/' + str(id) + 'stickers' + '.txt'):
-            f = open(self.path_to_txt + str(id) + '/' + str(id) + 'stickers' + '.txt', 'w', encoding='utf8')
-            f.write('')
-            f.close()
-            self.stickers_path = self.path_to_txt + str(id) + '/' + str(id) + 'stickers' + '.txt'
-        else:
-            self.stickers_path = self.path_to_txt + str(id) + '/' + str(id) + 'stickers' + '.txt'
-        if not os.path.exists(self.path_to_txt + str(id) + "/paste/"):
-            os.mkdir(self.path_to_txt + str(id) + "/paste/")
-            self.chat_paste_path = self.path_to_txt + str(id) + "/paste/"
-        else:
-            self.chat_paste_path = self.path_to_txt + str(id) + "/paste/"
+
+
 
 '''gpt settings'''
 
@@ -122,7 +83,7 @@ async def stopgpt(msg: types.Message):
 async def dem(msg: types.Message):
     if msg.chat.id in bot.allowid:
         bot.checkchatpath(msg.chat.id)
-        bot.checkpics()
+        bot.GetListOfPics()
         try:
             with open(bot.chat_path, encoding="utf8") as file:
                 txt = file.read().split(",")
@@ -137,7 +98,7 @@ async def dem(msg: types.Message):
 
             await bot.bot.send_photo(msg.chat.id, photo=open(bot.chat_paste_path + r, 'rb'))
             try:
-                bot.checkpics()
+                bot.GetListOfPics()
                 for file in bot.pics:
                     if int(file[0]) >= 4:
                         os.remove(bot.chat_paste_path + file)
@@ -189,7 +150,7 @@ async def echo_message(msg: types.Message):
                 await bot.bot.send_message(msg.chat.id,'Неизвестная ошибка. Перезапустите ChatGPT')
         else:
             bot.checkchatpath(msg.chat.id)
-            bot.checkpics()
+            bot.GetListOfPics()
 
             with open(bot.chat_path, encoding="utf8") as file:
                 txt = file.read().split(",")
@@ -219,7 +180,7 @@ async def echo_message(msg: types.Message):
 
                         await bot.bot.send_photo(msg.chat.id, photo=open(bot.chat_paste_path + r, 'rb'))
                         try:
-                            bot.checkpics()
+                            bot.GetListOfPics()
                             for file in bot.pics:
                                 if int(file[0]) >= 4:
                                     os.remove(bot.chat_paste_path + file)
