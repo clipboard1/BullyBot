@@ -1,3 +1,3 @@
 telegram_api_token = ''
-gpt_token = ''
+openai_api_token = ''
 allowidlist = []

@@ -1,4 +1,6 @@
 import tokens
+from random import randint
+from mc import PhraseGenerator
 from aiogram import Bot
 from aiogram.dispatcher import Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -16,51 +18,91 @@ class TelegramBot:
         self.path_to_txt = "Dialogs/"
         self.chat_storage_path = ""
         self.stickers_storage_path = ""
-        self.chat_pics_path = ""
+        self.pics_storage_path = ""
         self.pics = ""
         self.chance = 50
+    
+    @staticmethod
+    def _CheckChatStorages(id):
+        if not (TelegramBot._ChatStorageExists):
+            TelegramBot._CreateChatStorage(self, id)
+        TelegramBot._SetChatStoragePath(self, id)
+        if not (TelegramBot._StickersStorageExists(self, id)):
+            TelegramBot._CreateChatStorage(self, id)
+        TelegramBot._SetStickersStoragePath(self, id)
+        if not(TelegramBot._PicsStorageExists):
+            TelegramBot._CreatePicsStorage(self, id)
+        TelegramBot._SetPicsStorageExists(self, id)
 
-    def _GetListOfPics(self):
-        self.pics = listdir(path=self.chat_paste_path)
-
-    def _CheckChatStorages(self, id):
-        if not (self.__ChatStorageExists):
-            self.__CreateChatStorage(self, id)
-        self._SetChatStoragePath(self, id)
-        if not (self._StickersStorageExists(self, id)):
-            self._CreateChatStorage(self, id)
-        self._SetStickersStoragePath(self, id)
-        if
-
+    @staticmethod
     def _ChatStorageExists(self, id):
-        return path.exists(f"{self.path_to_txt}/{str(id)}/{str(id)}.txt")
+        return path.exists(f"{TelegramBot.path_to_txt}/{str(id)}/{str(id)}.txt")
 
+    @staticmethod
     def _StickersStorageExists(self, id):
-        return path.exists(f"{self.path_to_txt}/{str(id)}/{str(id)}stickers.txt")
+        return path.exists(f"{TelegramBot.path_to_txt}/{str(id)}/{str(id)}stickers.txt")
 
+    @staticmethod
     def _PicsStorageExists(self, id):
-        return path.exists(f"{self.path_to_txt}/{str(id)}/pics")
+        return path.exists(f"{TelegramBot.path_to_txt}/{str(id)}/pics")
 
+    @staticmethod
     def _CreateChatStorage(self, id):
-        mkdir(f"{self.path_to_txt}/{str(id)}/")
-        self.__CreateTxtStorage(self, "", id)
+        mkdir(f"{TelegramBot.path_to_txt}/{str(id)}/")
+        TelegramBot._CreateTxtStorage(self, "", id)
 
+    @staticmethod
     def _CreateStickersStorage(self, id):
-        self.__CreateTxtStorage(self, "stickers", id)
+        TelegramBot._CreateTxtStorage(self, "stickers", id)
 
+    @staticmethod
     def _CreateTxtStorage(self, name, id):
-        pathToStorage = f"{self.path_to_txt}/{str(id)}/{str(id)}{name}.txt"
+        pathToStorage = f"{TelegramBot.path_to_txt}/{str(id)}/{str(id)}{name}.txt"
         with open(pathToStorage, "w") as storageFile:
             storageFile.write("")
 
-    def _SetChatStoragePath(self, id):
-        self.chat_storage_path = f"{self.path_to_txt}/{str(id)}/{str(id)}.txt"
+    @staticmethod
+    def _CreatePicsStorage(self, id):
+        mkdir(f"{TelegramBot.path_to_txt}/{str(id)}/pics")
 
+    @staticmethod
+    def _SetChatStoragePath(self, id):
+        TelegramBot.chat_storage_path = f"{TelegramBot.path_to_txt}/{str(id)}/{str(id)}.txt"
+
+    @staticmethod
     def _SetStickersStoragePath(self, id):
-        self.stickers_storage_path = (
-            f"{self.path_to_txt}/{str(id)}/{str(id)}stickers.txt"
+        TelegramBot.stickers_storage_path = (
+            f"{TelegramBot.path_to_txt}/{str(id)}/{str(id)}stickers.txt"
         )
 
+    @staticmethod
+    def _SetPicsStorageExists(self, id):
+        TelegramBot.pics_storage_path = f"{TelegramBot.path_to_txt}/{str(id)}/pics"
+
+    @staticmethod
+    def _GetAndSplitAllMessages(pathToMessages):
+        with open(pathToMessages, encoding="utf8") as file:
+            return file.read().split(",")
+
+    @staticmethod
+    def _GeneratePhrase(pathToMessages):
+            samplesForGenerator = TelegramBot._GetAndSplitAllMessages(pathToMessages)
+            phraseGenerator = PhraseGenerator(samples=samplesForGenerator)
+            generatedPhrase = phraseGenerator.generate_phrase()
+            if len(generatedPhrase < 3):
+                generatedPhrase = "Error"
+            return generatedPhrase
+
+    @staticmethod
+    def _GetListOfPics():
+        return listdir(path=TelegramBot.pics_storage_path)
+
+    def _ChooseRandomPicture(arrayOfPictures):
+        return arrayOfPictures[randint(0, len(arrayOfPictures) - 1)]
+
+    def _CreateDemotivator(text):
+        pass
+        
     def _StartPolling(self):
         executor.start_polling(self)
 

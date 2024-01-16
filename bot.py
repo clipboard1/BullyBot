@@ -2,7 +2,7 @@
 import mc
 import random
 import photo_editor
-import openai
+
 import openai.error
 import tokens
 import asyncio

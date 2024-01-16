@@ -3,7 +3,7 @@ from PIL import Image
 from PIL import ImageDraw
 
 
-def add_text(text,r,dirpath):
+def addTextAndBorderToPhoto(text,r,dirpath):
     try:
         template = Image.open('Dialogs/template.jpg')
         mem = Image.open(dirpath+r).convert('RGBA')
