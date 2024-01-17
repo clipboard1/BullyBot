@@ -1,3 +1,5 @@
-tokens.py
 env
 .vs
+.vscode
+__pycache__
+Dialogs/
