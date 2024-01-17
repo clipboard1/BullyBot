@@ -3,14 +3,15 @@ from PIL import Image
 from PIL import ImageDraw
 
 
-def addTextAndBorderToPhoto(text,r,dirpath):
+def addTextAndBorderToPhoto(text,pathToRawImage):
     try:
         template = Image.open('Dialogs/template.jpg')
-        mem = Image.open(dirpath+r).convert('RGBA')
+        imageMemory = Image.open(pathToRawImage).convert('RGBA')
+        pathToNewImage = ""
 
         width = 610
         height = 569
-        resized_mem = mem.resize((width, height), Image.ANTIALIAS)
+        resized_mem = imageMemory.resize((width, height), Image.ANTIALIAS)
 
         text_position = (0, 0)
         text_color = (266,0,0)
@@ -50,11 +51,10 @@ def addTextAndBorderToPhoto(text,r,dirpath):
             strip_height = 1330
             position = ((strip_width-text_width)/2,(strip_height-text_height)/2)
             draw.text(position, text, font=font)
-        col = int(r[0]) + 1
-        r = r.replace(r[0], str(col))
         template.paste(resized_mem, (54, 32),  resized_mem)
-        template.save(dirpath + r)
-    except:
-        pass
+        template.save(pathToNewImage)
+        return pathToNewImage
+    except Exception as e:
+        print(e)
 
         
