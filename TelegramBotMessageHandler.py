@@ -12,8 +12,12 @@ class MessageHandler(Bot):
     @staticmethod
     def CanUserUseBot(id):
         return id in allowidlist
+    
+    @staticmethod
+    async def MessageIsValid(message: types.Message):
+        return not(message['from'].is_bot and message.text == "") 
 
-    async def help(self, message: types.Message):
+    async def Help(self, message: types.Message):
         if self.CanUserUseBot(message.chat.id):     
             await message.reply("\nПиши /demot для генерации демотиватора"
                                 "\nПиши /startgpt для начала диалога с ChatGPT"
@@ -23,8 +27,8 @@ class MessageHandler(Bot):
             await message.reply('Я вас не знаю, не пишите мне. Добавьте себя в список допущенных id, вот ваш id ' + str(message.chat.id))
         self.ITelegramBot.CheckChatStorages(message.chat.id)
 
-
-    async def startgpt(self, message: types.Message):
+    
+    async def Startgpt(self, message: types.Message):
         if self.CanUserUseBot(message.from_user.id):
             if not self.openai_entity.isBusy:
                 self.openai_entity._SecureAIForAPerson(message.chat.id, message.from_user.id)
@@ -45,7 +49,7 @@ class MessageHandler(Bot):
                 + str(message.chat.id),
             )
     
-    async def stopgpt(self, message: types.Message):
+    async def Stopgpt(self, message: types.Message):
         if self.CanUserUseBot(message.from_user.id):
             if self.openai_entity.isBusy:
                 self.openai_entity._CloseAISession()
@@ -60,5 +64,19 @@ class MessageHandler(Bot):
                 + str(message.chat.id),
             )
 
+    async def SetAnswerchance(self, message: types.Message):
+        if self.CanUserUseBot(message.from_user.id):
+            messageArguments = message.get_args()
+            if messageArguments.isdigit():
+                self.answerChance = int(messageArguments)
+                await self.ITelegramBot.bot.send_message(message.chat.id, "Шанс ответа изменен на " + messageArguments)
+            else:
+                await self.ITelegramBot.bot.send_message(message.chat.id, "Неправильный аргумент")
+        else:
+            await self.ITelegramBot.bot.send_message(message.chat.id, 'Я вас не знаю, не пишите мне. Добавьте себя в список допущенных id, вот ваш id ' + str(msg.chat.id))
 
-
+    async def ProcessUserMessage(self, message: types.Message):
+        if self.MessageIsValid(message) and self.CanUserUseBot(message.from_user.id):
+            if (self.openai_entity.CanUserUseGPT(message.from_user.id)):
+                openaiResponse = self.openai_entity._GenerateAnswer(message.text)
+                await self.ITelegramBot.bot.send_message(message.chat.id, openaiResponse)

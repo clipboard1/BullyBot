@@ -16,7 +16,7 @@ class TelegramBot:
         self.chat_storage_path = ""
         self.stickers_storage_path = ""
         self.pics = ""
-        self.chance = 50
+        self.answerChance = 50
         self.message_handler = MessageHandler(self)
 
     
@@ -62,6 +62,8 @@ class TelegramBot:
         )
    
     def register_message_handlers(self):
-        self.dispatcher.register_message_handler(self.message_handler.help, commands=['help'])
-        self.dispatcher.register_message_handler(self.message_handler.startgpt, commands=['startgpt'])
-        self.dispatcher.register_message_handler(self.message_handler.stopgpt, commands=['stopgpt'])
+        self.dispatcher.register_message_handler(self.message_handler.Help, commands=['help'])
+        self.dispatcher.register_message_handler(self.message_handler.Startgpt, commands=['startgpt'])
+        self.dispatcher.register_message_handler(self.message_handler.Stopgpt, commands=['stopgpt'])
+        self.dispatcher.register_message_handler(self.message_handler.SetAnswerchance, commands=['setchance'])
+        self.dispatcher.register_message_handler(self.message_handler.ProcessUserMessage)
