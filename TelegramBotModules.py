@@ -20,18 +20,6 @@ class DemotivatorModule(TelegramBot):
     def _SetPicsStorageExists(id):
         DemotivatorModule.pics_storage_path = f"{TelegramBot.path_to_txt}/{str(id)}/pics"
 
-    def _GetAndSplitAllMessages(pathToMessages):
-        with open(pathToMessages, encoding="utf8") as file:
-            return file.read().split(",")
-
-    def _GeneratePhrase(pathToMessages):
-            samplesForGenerator = TelegramBot._GetAndSplitAllMessages(pathToMessages)
-            phraseGenerator = PhraseGenerator(samples=samplesForGenerator)
-            generatedPhrase = phraseGenerator.generate_phrase()
-            if len(generatedPhrase < 3):
-                generatedPhrase = "Error"
-            return generatedPhrase
-
     @staticmethod
     def _GetListOfPics():
         return listdir(path=DemotivatorModule.pics_storage_path)

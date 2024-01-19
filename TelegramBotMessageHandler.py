@@ -10,15 +10,22 @@ class MessageHandler(Bot):
         self.openai_entity = openAIEntity()
 
     @staticmethod
-    def CanUserUseBot(id):
+    def UserCanUseBot(id):
         return id in allowidlist
     
     @staticmethod
-    async def MessageIsValid(message: types.Message):
-        return not(message['from'].is_bot and message.text == "") 
+    def MessageIsValid(message: types.Message):
+        return not(message['from'].is_bot) and message.text != "" and len(message.text) > 2
+
+    async def UseRightWayToSendBotAnswer(self, message: types.Message):
+        generatedAnswer = self.ITelegramBot.GenerateMessage(self.ITelegramBot.HowBotWillAnswer())
+        if generatedAnswer['AnswerWay'] == 'text':
+            await self.ITelegramBot.bot.send_message(message.chat.id, generatedAnswer['Value'])
+        elif generatedAnswer['AnswerWay'] == 'sticker':
+            await self.ITelegramBot.bot.send_sticker(message.chat.id,sticker=generatedAnswer['Value'])
 
     async def Help(self, message: types.Message):
-        if self.CanUserUseBot(message.chat.id):     
+        if self.UserCanUseBot(message.chat.id):     
             await message.reply("\nПиши /demot для генерации демотиватора"
                                 "\nПиши /startgpt для начала диалога с ChatGPT"
                                 "\nДля завершения диалога с ChatGPT отправь /stopgpt"
@@ -29,7 +36,7 @@ class MessageHandler(Bot):
 
     
     async def Startgpt(self, message: types.Message):
-        if self.CanUserUseBot(message.from_user.id):
+        if self.UserCanUseBot(message.from_user.id):
             if not self.openai_entity.isBusy:
                 self.openai_entity._SecureAIForAPerson(message.chat.id, message.from_user.id)
                 await self.ITelegramBot.bot.send_message(message.chat.id, "Запускаю сессию с GPT-3.5-turbo")
@@ -50,7 +57,7 @@ class MessageHandler(Bot):
             )
     
     async def Stopgpt(self, message: types.Message):
-        if self.CanUserUseBot(message.from_user.id):
+        if self.UserCanUseBot(message.from_user.id):
             if self.openai_entity.isBusy:
                 self.openai_entity._CloseAISession()
                 await self.ITelegramBot.bot.send_message(message.chat.id, "Завершаю сессию с GPT-3.5-turbo")
@@ -65,7 +72,7 @@ class MessageHandler(Bot):
             )
 
     async def SetAnswerchance(self, message: types.Message):
-        if self.CanUserUseBot(message.from_user.id):
+        if self.UserCanUseBot(message.from_user.id):
             messageArguments = message.get_args()
             if messageArguments.isdigit():
                 self.answerChance = int(messageArguments)
@@ -76,7 +83,19 @@ class MessageHandler(Bot):
             await self.ITelegramBot.bot.send_message(message.chat.id, 'Я вас не знаю, не пишите мне. Добавьте себя в список допущенных id, вот ваш id ' + str(msg.chat.id))
 
     async def ProcessUserMessage(self, message: types.Message):
-        if self.MessageIsValid(message) and self.CanUserUseBot(message.from_user.id):
+        if self.MessageIsValid(message) and self.UserCanUseBot(message.from_user.id):
+            self.ITelegramBot.CheckChatStorages(message.from_user.id)
             if (self.openai_entity.CanUserUseGPT(message.from_user.id)):
                 openaiResponse = self.openai_entity._GenerateAnswer(message.text)
                 await self.ITelegramBot.bot.send_message(message.chat.id, openaiResponse)
+            else:
+                self.ITelegramBot.TryAddPhraseToBotDict(message.text)
+                if (self.ITelegramBot.BotWillAnswer()):
+                    await self.UseRightWayToSendBotAnswer(message)   
+
+    async def ProcessUserSticker(self, message: types.Message):
+        if (self.UserCanUseBot(message.from_user.id)):
+            self.ITelegramBot.CheckChatStorages(message.from_user.id)
+            self.ITelegramBot.TryAddStickerIdToBotDict(message.sticker.file_id)
+        if (self.ITelegramBot.BotWillAnswer()):
+            await self.UseRightWayToSendBotAnswer(message)
