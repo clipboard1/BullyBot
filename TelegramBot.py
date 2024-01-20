@@ -1,15 +1,19 @@
-import tokens
 from TelegramBotMessageHandler import MessageHandler
-from photo_editor import addTextAndBorderToPhoto
+from photoEditor import addTextAndBorderToPhoto
 from aiogram import Bot
 from aiogram.dispatcher import Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.utils import executor
 from os import listdir, path, mkdir
 from random import choices, randint
 from mc import PhraseGenerator
+import ast
+
 class TelegramBot:
     def __init__(self):
+        self.telegramAPIToken = ""
+        self.openaiToken = ""
+        self.allowIDList = []
+        self.UpdateTokensValues()
         self.BaseFolder = "Dialogs"
         self.ChatStoragePath = ""
         self.StickersStoragePath = ""
@@ -17,11 +21,9 @@ class TelegramBot:
         self.answerChance = 50
         self.message_handler = MessageHandler(self)
         self.storage = MemoryStorage()
-        self.token = tokens.telegram_api_token
-        self.bot = Bot(token=self.token)
+        self.bot = Bot(token=self.telegramAPIToken)
         self.dispatcher = Dispatcher(self.bot, storage=self.storage)
 
-    
     def CheckChatStorages(self, id):
         if not (self._ChatStorageExists(id)):
             self._CreateChatStorage(id)
@@ -33,7 +35,6 @@ class TelegramBot:
             self._CreatePicsStorage(id)
         self._SetPicsStorage(id)
 
-    
     def _ChatStorageExists(self, id):
         return path.exists(f"{self.BaseFolder}/{str(id)}/{str(id)}.txt")
 
@@ -58,6 +59,12 @@ class TelegramBot:
         with open(pathToStorage, "w") as storageFile:
             storageFile.write("")
 
+    def UpdateTokensValues(self):
+        tokens = self._ReadTokensValues()
+        self.telegramAPIToken = tokens["telegramAPIToken"]
+        self.openaiToken = tokens["openaiAPIToken"]
+        self.allowIDList = tokens["allowidlist"]
+
     def _SetChatStoragePath(self, id):
         self.ChatStoragePath = f"{self.BaseFolder}/{str(id)}/{str(id)}.txt"
 
@@ -66,6 +73,19 @@ class TelegramBot:
     
     def _SetPicsStorage(self, id):
         self.PicsStoragePath = f"{self.BaseFolder}/{str(id)}/pics"
+
+    @staticmethod
+    def _ReadTokensValues():
+        tokens = {}
+        with open('tokens.txt', 'r') as f:
+            for line in f:
+                partsOfLine = line.strip().split(':', 1)
+                key = partsOfLine[0].strip()
+                value = partsOfLine[1].strip()
+                if '[' in value and ']' in value:
+                    value = ast.literal_eval(value)
+                tokens[key] = value
+        return tokens
 
     @staticmethod
     def _GetAndSplitAllData(pathToStorage):

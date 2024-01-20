@@ -2,4 +2,3 @@ env
 .vs
 .vscode
 __pycache__
-Dialogs/

@@ -1,6 +1,4 @@
 from aiogram import types, Bot
-import asyncio
-from tokens import allowidlist
 from IGPTAPI import openAIEntity
 
 class MessageHandler(Bot):
@@ -9,9 +7,8 @@ class MessageHandler(Bot):
         self.ITelegramBot = bot
         self.openai_entity = openAIEntity()
 
-    @staticmethod
-    def UserCanUseBot(id):
-        return id in allowidlist
+    def UserCanUseBot(self, id):
+        return id in self.ITelegramBot.allowIDList
     
     @staticmethod
     def MessageIsValid(message: types.Message):
@@ -27,6 +24,7 @@ class MessageHandler(Bot):
             await self.ITelegramBot.bot.send_photo(message.chat.id, photo=open(generatedAnswer['Value'], 'rb'))
 
     async def Help(self, message: types.Message):
+        self.ITelegramBot.UpdateTokensValues()
         if self.UserCanUseBot(message.chat.id):     
             await message.reply("\nПиши /demot для генерации демотиватора"
                                 "\nПиши /startgpt для начала диалога с ChatGPT"
@@ -37,17 +35,18 @@ class MessageHandler(Bot):
         self.ITelegramBot.CheckChatStorages(message.chat.id)
 
     async def Demotivator(self, message: types.Message):
+        self.ITelegramBot.UpdateTokensValues()
         if self.UserCanUseBot(message.chat.id):
             self.ITelegramBot.CheckChatStorages(message.chat.id)
             await self.ITelegramBot.bot.send_photo(message.chat.id, photo=open(self.ITelegramBot.CreateDemotivator(), 'rb'))  
         else:
             await message.reply('Я вас не знаю, не пишите мне. Добавьте себя в список допущенных id, вот ваш id ' + str(message.chat.id))
         
-
     async def Startgpt(self, message: types.Message):
+        self.ITelegramBot.UpdateTokensValues()
         if self.UserCanUseBot(message.from_user.id):
             if not self.openai_entity.isBusy:
-                self.openai_entity._SecureAIForAPerson(message.chat.id, message.from_user.id)
+                self.openai_entity.SecureAIForAPerson(message.chat.id, message.from_user.id)
                 await self.ITelegramBot.bot.send_message(message.chat.id, "Запускаю сессию с GPT-3.5-turbo")
                 await self.ITelegramBot.bot.send_message(
                     message.chat.id,
@@ -66,6 +65,7 @@ class MessageHandler(Bot):
             )
     
     async def Stopgpt(self, message: types.Message):
+        self.ITelegramBot.UpdateTokensValues()
         if self.UserCanUseBot(message.from_user.id):
             if self.openai_entity.isBusy:
                 self.openai_entity._CloseAISession()
@@ -81,6 +81,7 @@ class MessageHandler(Bot):
             )
 
     async def SetAnswerchance(self, message: types.Message):
+        self.ITelegramBot.UpdateTokensValues()
         if self.UserCanUseBot(message.from_user.id):
             messageArguments = message.get_args()
             if messageArguments.isdigit():
@@ -92,6 +93,7 @@ class MessageHandler(Bot):
             await self.ITelegramBot.bot.send_message(message.chat.id, 'Я вас не знаю, не пишите мне. Добавьте себя в список допущенных id, вот ваш id ' + str(msg.chat.id))
 
     async def ProcessUserSticker(self, message: types.Message):
+        self.ITelegramBot.UpdateTokensValues()
         if (self.UserCanUseBot(message.from_user.id)):
             self.ITelegramBot.CheckChatStorages(message.from_user.id)
             self.ITelegramBot.TryAddStickerIdToBotDict(message.sticker.file_id)
@@ -99,12 +101,14 @@ class MessageHandler(Bot):
             await self.UseRightWayToSendBotAnswer(message)
 
     async def ProcessUserPhoto(self, message: types.Message):
+        self.ITelegramBot.UpdateTokensValues()
         if (self.UserCanUseBot(message.from_user.id)):
             self.ITelegramBot.CheckChatStorages(message.from_user.id)
             if not(await self.ITelegramBot.SuccessfulDownloadPhotoFromMessage(message)):
                 await self.ITelegramBot.bot.send_message(message.chat.id, "Произошла ошибка при скачивании фото, попорбуйте еще раз")
 
     async def ProcessUserMessage(self, message: types.Message):
+        self.ITelegramBot.UpdateTokensValues()
         if self.MessageIsValid(message) and self.UserCanUseBot(message.from_user.id):
             self.ITelegramBot.CheckChatStorages(message.from_user.id)
             if (self.openai_entity.CanUserUseGPT(message.from_user.id)):

@@ -1,14 +1,14 @@
 import openai
 import openai.error
-from tokens import openai_api_token
+from tokens import openaiAPIToken 
+
 class openAIEntity:
     def __init__(self):
-        
-        openai.api_key = openai_api_token
+        openai.api_key = openaiAPIToken 
         self.messages = []
         self.isBusy = False
-        self.user_id = 0
-        self.chat_id = 0
+        self.userID = 0
+        self.chatID = 0
     
     def _AddContentAsUser(self, content):
         self.messages.append({"role": "user", "content": content})
@@ -16,19 +16,19 @@ class openAIEntity:
     def _AddContentAsAssistant(self, content):
         self.messages.append({"role": "assistant", "content": content})
 
-    def _SecureAIForAPerson(self, chat_id, user_id):
+    def SecureAIForAPerson(self, chatID, userID):
         self.isBusy = True
-        self.chatid = chat_id
-        self.user_id = user_id
+        self.chatID = chatID
+        self.userID = userID
 
     def _CloseAISession(self):
         self.isBusy = False
-        self.chat_id = 0
-        self.user_id = 0
+        self.chatID = 0
+        self.userID = 0
         self.messages = []
 
     def CanUserUseGPT(self, id):
-        return id == self.user_id
+        return id == self.userID
 
     @staticmethod
     def _HandlerOpenAIError(openaiError: Exception):
