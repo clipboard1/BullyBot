@@ -23,6 +23,8 @@ class MessageHandler(Bot):
             await self.ITelegramBot.bot.send_message(message.chat.id, generatedAnswer['Value'])
         elif generatedAnswer['AnswerWay'] == 'sticker':
             await self.ITelegramBot.bot.send_sticker(message.chat.id,sticker=generatedAnswer['Value'])
+        elif generatedAnswer['AnswerWay'] == 'demotivator':
+            await self.ITelegramBot.bot.send_photo(message.chat.id, photo=open(generatedAnswer['Value'], 'rb'))
 
     async def Help(self, message: types.Message):
         if self.UserCanUseBot(message.chat.id):     
@@ -34,7 +36,14 @@ class MessageHandler(Bot):
             await message.reply('Я вас не знаю, не пишите мне. Добавьте себя в список допущенных id, вот ваш id ' + str(message.chat.id))
         self.ITelegramBot.CheckChatStorages(message.chat.id)
 
-    
+    async def Demotivator(self, message: types.Message):
+        if self.UserCanUseBot(message.chat.id):
+            self.ITelegramBot.CheckChatStorages(message.chat.id)
+            await self.ITelegramBot.bot.send_photo(message.chat.id, photo=open(self.ITelegramBot.CreateDemotivator(), 'rb'))  
+        else:
+            await message.reply('Я вас не знаю, не пишите мне. Добавьте себя в список допущенных id, вот ваш id ' + str(message.chat.id))
+        
+
     async def Startgpt(self, message: types.Message):
         if self.UserCanUseBot(message.from_user.id):
             if not self.openai_entity.isBusy:
@@ -82,6 +91,19 @@ class MessageHandler(Bot):
         else:
             await self.ITelegramBot.bot.send_message(message.chat.id, 'Я вас не знаю, не пишите мне. Добавьте себя в список допущенных id, вот ваш id ' + str(msg.chat.id))
 
+    async def ProcessUserSticker(self, message: types.Message):
+        if (self.UserCanUseBot(message.from_user.id)):
+            self.ITelegramBot.CheckChatStorages(message.from_user.id)
+            self.ITelegramBot.TryAddStickerIdToBotDict(message.sticker.file_id)
+        if (self.ITelegramBot.BotWillAnswer()):
+            await self.UseRightWayToSendBotAnswer(message)
+
+    async def ProcessUserPhoto(self, message: types.Message):
+        if (self.UserCanUseBot(message.from_user.id)):
+            self.ITelegramBot.CheckChatStorages(message.from_user.id)
+            if not(await self.ITelegramBot.SuccessfulDownloadPhotoFromMessage(message)):
+                await self.ITelegramBot.bot.send_message(message.chat.id, "Произошла ошибка при скачивании фото, попорбуйте еще раз")
+
     async def ProcessUserMessage(self, message: types.Message):
         if self.MessageIsValid(message) and self.UserCanUseBot(message.from_user.id):
             self.ITelegramBot.CheckChatStorages(message.from_user.id)
@@ -92,10 +114,4 @@ class MessageHandler(Bot):
                 self.ITelegramBot.TryAddPhraseToBotDict(message.text)
                 if (self.ITelegramBot.BotWillAnswer()):
                     await self.UseRightWayToSendBotAnswer(message)   
-
-    async def ProcessUserSticker(self, message: types.Message):
-        if (self.UserCanUseBot(message.from_user.id)):
-            self.ITelegramBot.CheckChatStorages(message.from_user.id)
-            self.ITelegramBot.TryAddStickerIdToBotDict(message.sticker.file_id)
-        if (self.ITelegramBot.BotWillAnswer()):
-            await self.UseRightWayToSendBotAnswer(message)
+          

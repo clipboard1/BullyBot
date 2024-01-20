@@ -1,13 +1,24 @@
 from PIL import ImageFont
 from PIL import Image
 from PIL import ImageDraw
+import os
+pathToErrorPhoto = "Dialogs/error.jpg"
 
+def IncreasePrefix(path):
+    filename = os.path.basename(path)
+    BaseFolder = os.path.dirname(path)
+    partsOfFilename = filename.split('_')
+    prevPrefix = partsOfFilename[0]
+    newPrefix = str(int(prevPrefix) + 1)
+    newFilename = f"{newPrefix}_{partsOfFilename[1]}"
+    newPath = os.path.join(BaseFolder, newFilename)
+    return newPath
 
-def addTextAndBorderToPhoto(text,pathToRawImage):
+def addTextAndBorderToPhoto(text, pathToRawImage):
     try:
         template = Image.open('Dialogs/template.jpg')
         imageMemory = Image.open(pathToRawImage).convert('RGBA')
-        pathToNewImage = ""
+        pathToNewImage = IncreasePrefix(pathToRawImage)
 
         width = 610
         height = 569
@@ -15,7 +26,6 @@ def addTextAndBorderToPhoto(text,pathToRawImage):
 
         text_position = (0, 0)
         text_color = (266,0,0)
-
 
         strip_width, strip_height = 700, 1300
 
@@ -54,7 +64,8 @@ def addTextAndBorderToPhoto(text,pathToRawImage):
         template.paste(resized_mem, (54, 32),  resized_mem)
         template.save(pathToNewImage)
         return pathToNewImage
-    except Exception as e:
-        print(e)
+    except Exception as exception:
+        print(exception)
+        return pathToErrorPhoto
 
         
